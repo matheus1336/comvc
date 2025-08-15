@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Consulta de Clientes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .reload-btn {
+            padding: 12px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .reload-btn:hover {
+            background: #218838;
+        }
+
+        .search-hint {
+            font-size: 0.95rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .results-section {
+            padding: 0 40px 40px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .results-header {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin-top: 30px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .client-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e0e6ed;
+        }
+
+        .client-card:last-child {
+            border-radius: 0 0 10px 10px;
+        }
+
+        .client-card:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: start;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .pontos {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .pontos.negativo {
+            color: #dc3545;
+        }
+
+        .cashback {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #17a2b8;
+        }
+
+        .cashback.negativo {
+            color: #dc3545;
+        }
+
+        .resgatado {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input, .search-btn {
+                width: 100%;
+            }
+            
+            .client-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Sistema de Consulta de Clientes</h1>
+            <p>Busque clientes por nome ou ID e visualize os pontos</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Digite o nome do cliente ou ID..."
+                    onkeypress="if(event.key==='Enter') buscarCliente()"
+                >
+                <button class="search-btn" onclick="buscarCliente()">
+                    🔍 Buscar
+                </button>
+                <button class="reload-btn" onclick="recarregarPlanilha()">
+                    🔄 Recarregar
+                </button>
+            </div>
+            <div class="search-hint">
+                💡 Você pode buscar pelo nome (busca parcial) ou pelo ID do cliente (busca exata)
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                <h3>🏠 Bem-vindo!</h3>
+                <p>Digite um nome ou ID para começar a busca</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function buscarCliente() {
+            const termo = document.getElementById('searchInput').value.trim();
+            const resultsSection = document.getElementById('resultsSection');
+            
+            if (!termo) {
+                mostrarMensagem('Por favor, digite um termo para busca.', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            resultsSection.innerHTML = '<div class="loading">🔄 Buscando...</div>';
+
+            try {
+                const response = await fetch('/buscar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ termo: termo })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    mostrarResultados(data.clientes, data.total);
+                } else {
+                    mostrarMensagem(data.erro, 'error');
+                }
+            } catch (error) {
+                mostrarMensagem('Erro de conexão com o servidor.', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        function mostrarResultados(clientes, total) {
+            const resultsSection = document.getElementById('resultsSection');
+            
+            let html = `<div class="results-header">
+                📊 ${total} cliente(s) encontrado(s)
+            </div>`;
+
+            clientes.forEach(cliente => {
+                const pontosClass = cliente.pontos < 0 ? 'pontos negativo' : 'pontos';
+                const pontosFormatado = new Intl.NumberFormat('pt-BR').format(cliente.pontos);
+                
+                const pontosResgatadosFormatado = new Intl.NumberFormat('pt-BR').format(cliente.pontos_resgatados);
+                
+                const cashbackClass = cliente.cashback < 0 ? 'cashback negativo' : 'cashback';
+                const cashbackFormatado = new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(cliente.cashback);
+                
+                const cashbackResgatadoFormatado = new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(cliente.cashback_resgatado);
+
+                html += `
+                    <div class="client-card">
+                        <div class="client-info">
+                            <div class="info-item">
+                                <div class="info-label">👤 Nome</div>
+                                <div class="info-value">${cliente.nome}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">🏷️ Apelido</div>
+                                <div class="info-value">${cliente.apelido}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">🌍 Região</div>
+                                <div class="info-value">${cliente.regiao}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">🆔 ID Cliente</div>
+                                <div class="info-value">${cliente.id_cliente}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">⭐ Pontos Disponíveis</div>
+                                <div class="${pontosClass}">${pontosFormatado} pts</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">📥 Pontos Resgatados</div>
+                                <div class="resgatado">${pontosResgatadosFormatado} pts</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">💰 Cashback Disponível</div>
+                                <div class="${cashbackClass}">${cashbackFormatado}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">💸 Cashback Resgatado</div>
+                                <div class="resgatado">${cashbackResgatadoFormatado}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsSection.innerHTML = html;
+        }
+
+        function mostrarMensagem(mensagem, tipo) {
+            const resultsSection = document.getElementById('resultsSection');
+            const className = tipo === 'error' ? 'error-message' : 'success-message';
+            
+            resultsSection.innerHTML = `
+                <div class="${className}">
+                    ${tipo === 'error' ? '❌' : '✅'} ${mensagem}
+                </div>
+            `;
+        }
+
+        async function recarregarPlanilha() {
+            try {
+                const response = await fetch('/recarregar');
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    mostrarMensagem(data.mensagem, 'success');
+                } else {
+                    mostrarMensagem('Erro ao recarregar planilha.', 'error');
+                }
+            } catch (error) {
+                mostrarMensagem('Erro de conexão com o servidor.', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Adicionar evento de Enter no campo de busca
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarCliente();
+            }
+        });
+    </script>
+</body>
+</html>
